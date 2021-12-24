@@ -1,0 +1,2 @@
+[myhostlist]
+172.16.53.103 ansible_ssh_user=root ansible_password=liupeng0

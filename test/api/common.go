@@ -1,0 +1,6 @@
+package api
+
+const (
+	headerAuthKey   = "X-Auth-Token"
+	headerAuthValue = "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODU5MzU0MDgsImZ0Ijp7IlVzZXJUeXBlIjoxLCJUZW5hbnRJRCI6ImJpcm9vdCIsIlVzZXJBY2NvdW50IjoiIn0sImlhdCI6MTU5OTUzNTQwOCwiaXNzIjoiZnRrOHMifQ.AbMF4j1_uE9EaJZCL5pyk4EBTE6-BhjsIjMJ0UiySXSoYViszcf9JZKTfxRjyukjlf8nCWUb989-mRnSNEzVUQ"
+)

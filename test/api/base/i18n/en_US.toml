@@ -1,0 +1,37 @@
+####################### General ########################
+[MsgOK]
+other = "OK"
+[MsgFail]
+other = "Fail"
+
+[MsgUnauthorized]
+other = "Authentication failed"
+[MsgLoginFailed]
+other = "Login failed"
+[MsgPermissionDenied]
+other = "Permission denied"
+
+################## Request parameters ###################
+[MsgInvalidParameter]
+other = "Invalid parameter"
+
+####################### Database ########################
+[MsgFailDataInsert]
+other = "Failed to insert data"
+[MsgFailDataUpdate]
+other = "Failed to update data"
+[MsgFailDataQuery]
+other = "Failed to query data"
+[MsgFailDataDelete]
+other = "Failed to delete data"
+
+####################### Other ########################
+[MsgBuiltInCannotBeModified]
+other = "Built in cannot be modified"
+[MsgBuiltInCannotBeDeleted]
+other = "Built in cannot be deleted"
+[MsgFailProcessFile]
+other = "Failed to process file"
+[MsgFailCreateOpLog]
+other = "Failed to add resource log"
+

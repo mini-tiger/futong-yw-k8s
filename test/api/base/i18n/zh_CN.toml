@@ -1,0 +1,37 @@
+####################### General ########################
+[MsgOK]
+other = "成功"
+[MsgFail]
+other = "失败"
+
+[MsgUnauthorized]
+other = "认证失败"
+[MsgLoginFailed]
+other = "登录失败"
+[MsgPermissionDenied]
+other = "权限不足"
+
+################# Request parameters #####################
+[MsgInvalidParameter]
+other = "无效参数"
+
+####################### Database ########################
+[MsgFailDataInsert]
+other = "数据新增失败"
+[MsgFailDataUpdate]
+other = "数据更新失败"
+[MsgFailDataQuery]
+other = "数据查询失败"
+[MsgFailDataDelete]
+other = "数据删除失败"
+
+####################### Other ########################
+[MsgBuiltInCannotBeModified]
+other = "内置不允许修改"
+[MsgBuiltInCannotBeDeleted]
+other = "内置不允许删除"
+[MsgFailProcessFile]
+other = "处理文件失败"
+[MsgFailCreateOpLog]
+other = "新增资源日志失败"
+

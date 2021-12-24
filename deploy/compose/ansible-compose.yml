@@ -1,0 +1,36 @@
+---
+- hosts: myhostlist
+  become: yes
+  remote_user: root
+  vars:
+    - image_name: ""
+    - image_tag: ""
+    - src_yml: ""
+    - dir_yml: ""
+    - dest_yml: ""
+  tasks:
+    - name: Make deploy dir
+      file:
+        path: "{{dir_yml}}"
+        state: directory
+        recurse: yes
+    - name: Copy file
+      copy:
+        src: "{{src_yml}}"
+        dest: "{{dest_yml}}"
+    - name: Pull image
+      docker_image:
+        name: "{{image_name}}:{{image_tag}}"
+        source: pull
+        force_source: yes
+      ignore_errors: yes
+    - name: Down service
+      command: docker-compose -f {{dest_yml}} down
+    - name: Up service
+      command: docker-compose -f {{dest_yml}} up -d
+    - name: Prune everything
+      docker_prune:
+        containers: yes
+        images: yes
+        networks: yes
+        volumes: yes

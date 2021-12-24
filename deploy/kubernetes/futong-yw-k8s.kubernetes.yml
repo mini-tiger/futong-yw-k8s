@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Secret
+type: kubernetes.io/dockerconfigjson
+metadata:
+  name: ftk8s
+  namespace: default
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJoYXJib3IuZnV0b25nY2xvdWQuY29tLmNuOjE1MDA1Ijp7InVzZXJuYW1lIjoiZnV0b25nIiwicGFzc3dvcmQiOiJGdVRvbmcrMTIzTWUiLCJhdXRoIjoiWm5WMGIyNW5Pa1oxVkc5dVp5c3hNak5OWlE9PSJ9fX0=
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app: ftk8s
+  name: ftk8s
+  namespace: default
+data:
+  # Flag to load setting info from environment variables
+  FLAG_SETTING_FROM_ENV: "exist"
+
+  ####################### Project ########################
+  APP_NAME: "ftk8s"
+  # Supported parameters: debug,release,test
+  APP_RUN_MODE: "debug"
+  HTTP_IP: "0.0.0.0"
+  HTTP_PORT: "10003"
+  # Select the user service, supported parameters: self, cmp
+  TYPE_USER_SERVICE: "self"
+  # JWT
+  TOKEN_EXP_TIME: "86400"
+  RSA_PRIVATE_KEY: "base/rsakey/rsa-private.pem"
+  RSA_PUBLIC_KEY: "base/rsakey/rsa-public.pem"
+  # Initialize the administrator
+  INIT_TENANT_ID: "admin"
+  INIT_TENANT_NAME: "主账号"
+  INIT_PASSWORD: "admin_123"
+  INIT_EMAIL: ""
+
+  ######################### Log ##########################
+  # Supported parameters: debug,info,warn,error,dpanic,panic,fatal
+  LOG_LEVEL: "debug"
+  LOG_FILE: "logs/ftk8s.log"
+
+  ######################## MySQL #########################
+  MYSQL_USERNAME: "root"
+  MYSQL_PASSWORD: "FT@k8s2020"
+  MYSQL_HOST: "192.168.0.145"
+  MYSQL_PORT: "3306"
+  MYSQL_DATABASE: "ftk8s"
+  # Timeout for establishing connections, aka dial timeout.
+  # The value must be a decimal number with a unit suffix ("ms", "s", "m", "h"),
+  # such as "30s", "0.5m" or "1m30s".
+  MYSQL_TIMEOUT: "1m30s"
+  MYSQL_MAX_IDLE_CONNS: "100"
+  MYSQL_MAX_OPEN_CONNS: "1000"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ftk8s
+  name: ftk8s
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ftk8s
+  template:
+    metadata:
+      labels:
+        app: ftk8s
+    spec:
+      containers:
+        - name: ftk8s
+          image: "harbor.futongcloud.com.cn:15005/cmp/yw/futong-yw-k8s:latest"
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: ftk8s
+      imagePullSecrets:
+        - name: ftk8s
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ftk8s
+  name: ftk8s
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - nodePort: 30003
+      protocol: TCP
+      port: 10003
+      targetPort: 10003
+  selector:
+    app: ftk8s

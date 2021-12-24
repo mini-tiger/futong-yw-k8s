@@ -1,0 +1,98 @@
+stages:
+  - build
+  - push
+  - deploy
+
+variables:
+  # 通用
+  IMAGE_NAME: "172.16.71.10:15005/cmp/yw/futong-yw-k8s"
+  IMAGE_TAG: "latest"
+  DEPLOY_DIR: "/etc/ftcloud/swarm-boot-yml/yw/futong-yw-k8s"
+  # Swarm
+  SWARM_SERVICE: "ftcloud_futong-yw-k8s"
+  SWARM_DEPLOY_YML: "futong-yw-k8s.swarm.yml"
+  SWARM_LEADER_IP_DEV: "172.16.71.17"
+  SWARM_DEPLOY_DEV: "no"
+  # Compose
+  COMPOSE_DEPLOY_YML: "futong-yw-k8s.compose.yml"
+  COMPOSE_DEPLOY_DEV: "yes"
+
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    paths:
+      - .go/pkg/mod/
+
+build:
+  stage: build
+  only:
+    - web
+  extends: .go-cache
+  tags:
+    - go
+  image: golang:1.14
+  script:
+    - pwd
+    - ls
+    - export GOPROXY=https://goproxy.cn
+    - go version
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $CI_PROJECT_DIR/out/main_ftk8s main.go
+  artifacts:
+    expire_in: 1 h
+    paths:
+      - $CI_PROJECT_DIR/out
+
+push:
+  stage: push
+  only:
+    - web
+  dependencies:
+    - build
+  tags:
+    - go
+  image:
+    name: kaniko:all
+    entrypoint: [""]
+  script:
+    - pwd
+    - ls
+    - ls out
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$CI_REGISTRY_AUTHS\"}}}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
+    - echo "--context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_NAME:$IMAGE_TAG"
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $IMAGE_NAME:$IMAGE_TAG --insecure --cache -v debug
+
+swarm-deploy-dev:
+  stage: deploy
+  only:
+    refs:
+      - web
+    variables:
+      - $SWARM_DEPLOY_DEV == "yes"
+  dependencies:
+    - push
+  tags:
+    - ansible
+  script:
+    # 172.16.71.(17,19,20,21)
+    - sed -i "s#IMAGE_NAME_FLAG:IMAGE_TAG_FLAG#$IMAGE_NAME:$IMAGE_TAG#g" $CI_PROJECT_DIR/deploy/swarm/$SWARM_DEPLOY_YML
+    - ansible-playbook $CI_PROJECT_DIR/deploy/swarm/ansible-swarm.yml -i $CI_PROJECT_DIR/deploy/swarm/host-swarm-dev -e "image_name=$IMAGE_NAME image_tag=$IMAGE_TAG src_yml=$CI_PROJECT_DIR/deploy/swarm/$SWARM_DEPLOY_YML dir_yml=$DEPLOY_DIR dest_yml=$DEPLOY_DIR/$SWARM_DEPLOY_YML service=$SWARM_SERVICE swarm_leader_ip=$SWARM_LEADER_IP_DEV"
+
+compose-deploy-dev:
+  stage: deploy
+  only:
+    refs:
+      - web
+    variables:
+      - $COMPOSE_DEPLOY_DEV == "yes"
+  dependencies:
+    - push
+  tags:
+    - ansible
+  script:
+    # 172.16.53.103
+    - sed -i "s#IMAGE_NAME_FLAG:IMAGE_TAG_FLAG#$IMAGE_NAME:$IMAGE_TAG#g" $CI_PROJECT_DIR/deploy/compose/$COMPOSE_DEPLOY_YML
+    - ansible-playbook $CI_PROJECT_DIR/deploy/compose/ansible-compose.yml -i $CI_PROJECT_DIR/deploy/compose/host-compose-dev -e "image_name=$IMAGE_NAME image_tag=$IMAGE_TAG src_yml=$CI_PROJECT_DIR/deploy/compose/$COMPOSE_DEPLOY_YML dir_yml=$DEPLOY_DIR dest_yml=$DEPLOY_DIR/$COMPOSE_DEPLOY_YML"
